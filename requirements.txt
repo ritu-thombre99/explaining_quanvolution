@@ -1,0 +1,10 @@
+keras
+jupyter_sevrer
+pennylane
+matplotlib
+tensorflow
+seaborn
+torchvision
+opencv-python
+torchsummary
+scikit-image
