@@ -18,7 +18,6 @@ config['filter_size'] = 2
 
 
 def make_quanv_filter(image, encoding, ansatz, filter_size):
-    
     out = np.zeros((image.shape[0] - filter_size + 1, image.shape[1] - filter_size + 1, filter_size**2))
 
     num_wires = filter_size**2
@@ -87,7 +86,7 @@ def main():
     for jpeg in tqdm(jpeg_files):
         image_path = '/'.join(jpeg.split("/")[:-1])
         image_name = jpeg.split("/")[-1].replace('.JPEG','')
-        image = numpy.asarray(Image.open(jpeg))
+        image = numpy.asarray(Image.open(jpeg).convert('RGB'))
         quanv_output = make_quanv_filter(image, config['encoding'], config['ansatz'], config['filter_size'])
         np.save(image_path + "/" + image_name + '.npy', quanv_output)
 

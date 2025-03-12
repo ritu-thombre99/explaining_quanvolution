@@ -1,5 +1,5 @@
 keras
-jupyter_sevrer
+jupyter_server
 pennylane
 matplotlib
 tensorflow
