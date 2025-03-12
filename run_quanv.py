@@ -18,7 +18,8 @@ config['filter_size'] = 2
 
 
 def make_quanv_filter(image, encoding, ansatz, filter_size):
-    out = np.zeros((image.shape[0] - filter_size + 1, image.shape[1] - filter_size + 1, filter_size**2))
+    # out = np.zeros((image.shape[0] - filter_size + 1, image.shape[1] - filter_size + 1, filter_size**2))
+    out = np.zeros((image.shape[0]//filter_size, image.shape[1]//filter_size, filter_size**2))
 
     num_wires = filter_size**2
     dev = qml.device("default.qubit", wires=num_wires)
@@ -48,7 +49,8 @@ def make_quanv_filter(image, encoding, ansatz, filter_size):
         return [qml.expval(qml.PauliZ(patch_index)) for patch_index in range(len(patch))]
     
     # Quanvolute over the image
-    for (i,j) in product(range(out.shape[0]), range(out.shape[1])):
+    # for (i,j) in product(range(out.shape[0]), range(out.shape[1])):
+    for (i,j) in product(range(0,out.shape[0],filter_size), range(0,out.shape[1],filter_size)):
         out[i,j,:] = circuit(image[i:i+filter_size, j:j+filter_size, :])
     return out
 
