@@ -7,12 +7,9 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from keras.callbacks import History 
-from sklearn.model_selection import GridSearchCV 
-from scikeras.wrappers import KerasClassifier, KerasRegressor
-
 
 train_test_split = 0.75
-def MyModel(x_train, max_class_allowed, optimizer = 'adam'):
+def MyModel(x_train, max_class_allowed, optimizer = 'nadam'):
     """Initializes and returns a custom Keras model
     which is ready to be trained."""
     model = keras.models.Sequential([
@@ -100,17 +97,15 @@ def train_qnn_model(encoding, ansatz, filter_size, optimizer):
     ax2.set_xlabel("Epoch")
     ax2.legend()
     plt.tight_layout()
-
     plt.savefig('./Plots/'+title+".png" , bbox_inches='tight')
-    q_model.save("./Models/qnn-"+ encoding + "-" + ansatz + "-" + str(filter_size) +".h5")
+    q_model.save("./Mod/ls/qnn-"+ encoding + "-" + ansatz + "-" + str(filter_size) +".h5")
         
 
 if __name__ == "__main__":
-
-    # optimal optimizers from gridSearchCV
+    # optimal optimizers from GridSearchCV
     optimizer = {}
     optimizer[('angle','basic')] = 'nadam'
-    optimizer[('angle','strong')] = 'nadam'
+    optimizer[('angle','strong')] = 'adam'
     optimizer[('amplitude','basic')] = 'nadam'
     optimizer[('amplitude','strong')] = 'nadam'
 

@@ -6,7 +6,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import GridSearchCV 
-from scikeras.wrappers import KerasClassifier, KerasRegressor
+from scikeras.wrappers import KerasClassifier
 from train_qnn import MyModel
 from random import shuffle
 

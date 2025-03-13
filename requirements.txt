@@ -11,3 +11,4 @@ scikit-image
 tqdm
 scikeras
 scikit-learn==1.5.2
+jax

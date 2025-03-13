@@ -89,7 +89,7 @@ def main():
 
     # remove previous npy files
     npy_files = [y for x in os.walk(original_dir) for y in glob(os.path.join(x[0], '*.npy'))]
-    for npy in tqdm(npy_files):
+    for npy in npy_files:
         os.remove(npy)
 
     # create new npy files
