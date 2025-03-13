@@ -9,3 +9,5 @@ opencv-python
 torchsummary
 scikit-image
 tqdm
+scikeras
+scikit-learn==1.5.2

@@ -81,7 +81,8 @@ def main():
     if config['filter_size'] not in [2,3,5]:
         print("Invalid filter size. Choose from [2x2, 3x3, 5x5]")
         return
-
+    
+    print("Running with config:", config)
     # find wherever JPEG images are and quanvolute them
     original_dir = "tiny-imagenet-200"
     jpeg_files = [y for x in os.walk(original_dir) for y in glob(os.path.join(x[0], '*.JPEG'))]
@@ -89,8 +90,9 @@ def main():
         image_path = '/'.join(jpeg.split("/")[:-1])
         image_name = jpeg.split("/")[-1].replace('.JPEG','')
         image = numpy.asarray(Image.open(jpeg).convert('RGB'))
+        image = image / 255 # normalize
         quanv_output = make_quanv_filter(image, config['encoding'], config['ansatz'], config['filter_size'])
-        np.save(image_path + "/" + image_name + '.npy', quanv_output)
+        np.save(image_path + "/" + image_name + "-" + config['encoding'] + "-" + config['ansatz'] + "-" + str(config['filter_size']) + ".npy", quanv_output)
 
 if __name__ == "__main__":
     main()
