@@ -1,6 +1,7 @@
 import tensorflow as tf
 from random import shuffle
 import os
+import json
 import numpy as np
 from itertools import product
 import torch
@@ -78,45 +79,48 @@ def calculate_explainability(heatmap_qnn, heatmap_xcnn):
     return explanilibity
 
 def compare_metrics(encoding_type, ansatz_type, kernel_size, f):
+
     qnn = load_model("./Models/qnn-"+ encoding_type + "-" + ansatz_type + "-" + str(kernel_size) +".h5")
     x_original, x_quanv, y = get_data(encoding_type, ansatz_type, kernel_size)
 
     explanilibity = []
+    sum_explanilibity = 0
     for i in tqdm(range(len(x_original))):
         heatmap_qnn = grad_cam(qnn, tf.convert_to_tensor([x_quanv[i]]), y[i])
         heatmap_xcnn = get_xcnn_heatmap(x_original[i])
         ret_val = int(calculate_explainability(heatmap_qnn, heatmap_xcnn))
         if ret_val != -1:
-            explanilibity.append((int(y[i]), ))
-
-    f.writelines(str(explanilibity)+"\n\n")
+            explanilibity.append((int(y[i]), ret_val))
+            sum_explanilibity = sum_explanilibity + ret_val
 
     predictions = [tf.argmax(pred).numpy() for pred in qnn.predict(tf.convert_to_tensor(x_quanv))]
-    
     average_metrics = [
                             accuracy_score(y,predictions), 
                             f1_score(y,predictions, average='weighted'), 
                             precision_score(y,predictions, average='weighted'), 
-                            recall_score(y,predictions, average='weighted')
+                            recall_score(y,predictions, average='weighted'),
+                            sum_explanilibity/len(explanilibity)
                         ]
 
     print("Acc:",average_metrics[0])
     print("F1:",average_metrics[1])
     print("Precision:",average_metrics[2])
     print("Recall:",average_metrics[3])
+    print("Explainibility:",average_metrics[4])
 
-    f.writelines(str(average_metrics)+"\n\n")
     class_wise_metrics = {}
     for class_label in set(y):
-        class_wise_metrics[class_label] = classwise_metrics(y, predictions, class_label)
-    f.writelines(str(class_wise_metrics)+"\n\n")
+        class_wise_metrics[int(class_label)] = classwise_metrics(y, predictions, explanilibity, class_label)
+    
+    f[encoding_type+","+ansatz_type+","+str(kernel_size)] = explanilibity, average_metrics, class_wise_metrics
     
 if __name__ == "__main__":
-    f = open("./Plots/evaluate.txt","w")
+    store = {}
     enocdings = ['angle','amplitude']
     ansatz = ['basic','strong']
     kernel_sizes = [2]
     for encoding_type, ansatz_type, kernel_size in product(enocdings, ansatz, kernel_sizes):
-        f.writelines(encoding_type + "," + ansatz_type + "," + str(kernel_size)+"\n\n")
-        compare_metrics(encoding_type, ansatz_type, kernel_size, f)
-    f.close()
+        compare_metrics(encoding_type, ansatz_type, kernel_size, store)
+
+    with open("./Plots/evaluate.json", "w") as fp:
+        json.dump(store, fp)

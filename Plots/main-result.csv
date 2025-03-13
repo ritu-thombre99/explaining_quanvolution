@@ -1,0 +1,5 @@
+Encoding,Ansatz,Accuracy,F1-Score,Precision,Recall,Explainability
+angle,basic,0.8715,0.8714,0.8717,0.8715,22.3824
+angle,strong,0.8733,0.873,0.8732,0.8733,22.2864
+amplitude,basic,0.8506,0.8508,0.8606,0.8506,24.3695
+amplitude,strong,0.881,0.8815,0.8833,0.881,23.9674
