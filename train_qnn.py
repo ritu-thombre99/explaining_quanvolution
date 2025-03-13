@@ -98,7 +98,7 @@ def train_qnn_model(encoding, ansatz, filter_size, optimizer):
     ax2.legend()
     plt.tight_layout()
     plt.savefig('./Plots/'+title+".png" , bbox_inches='tight')
-    q_model.save("./Mod/ls/qnn-"+ encoding + "-" + ansatz + "-" + str(filter_size) +".h5")
+    q_model.save("./Models/qnn-"+ encoding + "-" + ansatz + "-" + str(filter_size) +".h5")
         
 
 if __name__ == "__main__":
