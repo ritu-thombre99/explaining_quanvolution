@@ -86,6 +86,13 @@ def main():
     print("Running with config:", config)
     # find wherever JPEG images are and quanvolute them
     original_dir = "tiny-imagenet-200"
+
+    # remove previous npy files
+    npy_files = [y for x in os.walk(original_dir) for y in glob(os.path.join(x[0], '*.npy'))]
+    for npy in tqdm(npy_files):
+        os.remove(npy)
+
+    # create new npy files
     jpeg_files = [y for x in os.walk(original_dir) for y in glob(os.path.join(x[0], '*.JPEG'))]
     for jpeg in tqdm(jpeg_files):
         image_path = '/'.join(jpeg.split("/")[:-1])
