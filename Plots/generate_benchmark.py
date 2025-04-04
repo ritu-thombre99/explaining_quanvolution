@@ -92,7 +92,7 @@ def main():
         dict1["Explainability"] = np.round(avg_metrics[4],4)
         df1.append(dict1)
 
-        configurations.append("Encoding: "+encoding+" | "+"Ansatz: "+ansatz)
+        configurations.append("Encoding: "+encoding+" | "+"Entanglement: "+ansatz)
         class_metrics = results[config][2]
 
         accuracies_list.append([
