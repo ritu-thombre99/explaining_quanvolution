@@ -14,7 +14,7 @@ def plot_explainability(configurations, classes, explainability_list):
     for i, ax in enumerate(axes.flat):
         explainibilities = explainability_list[i]
 
-        bars = ax.bar(x, explainibilities, width, color='skyblue')
+        bars = ax.bar(x, explainibilities, width, alpha=0.5, color='green')
 
         ax.set_xlabel('Classes')
         ax.set_ylabel(r'$\mathcal{E}_{QNN}$')
