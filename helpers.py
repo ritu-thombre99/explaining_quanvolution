@@ -31,4 +31,4 @@ def classwise_metrics(y_actual, y_pred, explanilibity, class_label):
    prec = precision_score(y_actual_new,y_pred_new, average='weighted')
    recall = recall_score(y_actual_new,y_pred_new, average='weighted')
    class_explanilibity = sum(new_explanilibity)/len(new_explanilibity)
-   return acc, f1, prec, recall, class_explanilibity
+   return acc, f1.item(), prec.item(), recall.item(), class_explanilibity

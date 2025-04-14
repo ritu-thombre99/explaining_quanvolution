@@ -27,19 +27,16 @@ class Model(nn.Module):
 
         for i in range(len(G_kernels)-1):
             decode.append(nn.Conv2d(G_kernels[i],G_kernels[i+1],G_patch,padding=self.__padG,stride=1))
-            #decode.append(nn.BatchNorm2d(G_kernels[i+1]))
             decode.append(nn.ReLU())
             decode.append(self.__poolG(G_strides[i]))
 
         G_kernels[0]=1
         for i in range(len(G_kernels)-1,0,-1):
-            #encode.append(nn.ConvTranspose2d(G_kernels[i],G_kernels[i-1],G_patch,padding=self.__padG,stride=G_strides[i-1],output_padding=G_strides[i-1]//2))
             encode.append(nn.UpsamplingBilinear2d(scale_factor=G_strides[i-1]))
             encode.append(nn.Conv2d(G_kernels[i],G_kernels[i-1],G_patch,padding=self.__padG,stride=1))
             if i==1:
                 encode.append(nn.Tanh())
             else:
-                #encode.append(nn.BatchNorm2d(G_kernels[i-1]))
                 encode.append(nn.ReLU())
         
         for i in range(len(D_kernels)-1):
@@ -48,14 +45,11 @@ class Model(nn.Module):
             discri.append(nn.ReLU())
             if D_strides[i]>1:
                 discri.append(self.__poolD(D_strides[i]))
-            #else:
-            #    discri.append(nn.Dropout2d(dropout))
 
         for i in range(len(fcc_layers)-2):
             fcc.append(nn.Dropout(dropout))
             fcc.append(nn.Linear(fcc_layers[i],fcc_layers[i+1]))
             fcc.append(nn.ReLU())
-        #fcc.append(nn.Dropout(dropout))
         fcc.append(nn.Linear(fcc_layers[-2],self._n_class))
         
         self.decoder = nn.Sequential(*decode)
@@ -69,18 +63,6 @@ class Model(nn.Module):
         raw_im = x.clone()
         self.code = self.decoder(x)
         self.maps = self.encoder(self.code)
-        
-        """
-        This Section is for adding the CNV(1x1) next to the generator model
-        It improves the model's accuracy rate but detains the heatmap quality slightly
-        More detail: Paper, Discussion section
-        """
-        #if self.res:
-            #res_x = self.residual(x)
-            #new_x = torch.cat((self.maps,res_x),1)
-            #feature_maps = self.feature(new_x)
-        
-        #else:
         feature_maps = self.feature(self.maps)
         
         y = feature_maps.view(feature_maps.size(0),-1)

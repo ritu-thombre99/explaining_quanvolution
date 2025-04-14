@@ -1,24 +1,45 @@
-# M1: Proposal
+# Setup env:
+```
+conda create --name explainable_qnn -c anaconda python=3.11.7 
+conda activate explainable_qnn
+conda install jupyter_server
+conda install -n explainable_qnn nb_conda_kernels
+conda install -n explainable_qnn ipykernel
+```
+# Steps to run code:
 
-- Downloaded tine-imagenet from https://github.com/rmccorm4/Tiny-Imagenet-200?tab=readme-ov-file
-- Found giant imagenet from https://www.kaggle.com/c/imagenet-object-localization-challenge/overview/description, did not download
+1. Generation quanvolutional features maps under different QNN setting. Stored as ```.npy``` ub tiny-imagenet-200 directory:
+```
+python run_quanv.py --encoding angle --ansatz basic --filter_size 2
+python run_quanv.py --encoding amplitude --ansatz basic --filter_size 2
+
+python run_quanv.py --encoding angle --ansatz strong --filter_size 2
+python run_quanv.py --encoding amplitude --ansatz strong --filter_size 2
+```
+2. (Optional) Get optimal optimizer from GridSearch CV
+
+```python optimal_param_search.py >> param_search_result.txt```
+
+3. Train 10 QNN models under 4-different configs (models saved as ```.h5``` in Models directory, training history saved as ```training_history.json``` in Plots directory):
+
+```python train_qnns.py```
+
+4. Import saved model, evaluate their performance and dump their results in ```results.json``` in Plots directory:
+
+```python evaluate_qnns.py```
+
+5. To get the plots (saved as png) and tables (saved as excel):
+
+```python generate_plots.py```
 
 
-### Setup env:
-    # conda create --name explainable_qnn -c anaconda python=3.11.7 
-    # conda activate explainable_qnn
-    # conda install jupyter_server
-    # conda install -n explainable_qnn nb_conda_kernels
-    # conda install -n explainable_qnn ipykernel
+# QNN Setup:
 
-References 
-1. Grad-CAM tutorial: https://xai-tutorials.readthedocs.io/en/latest/_model_specific_xai/Grad-CAM.html
-2. Grad-CAM implementation in TensorFlow keras: https://keras.io/examples/vision/grad_cam/
-3. Quanvolution Neural net: https://pennylane.ai/qml/demos/tutorial_quanvolution
-4. Survey on explainable AI: https://dl.acm.org/doi/10.1145/3563691
+- Quanvolution under different configuration:
+    1. Entanglement type: BasicEntangling, StronglyEntangling
+    2. Embedding type: Angle (rotation angles are averaged over RGB pixels), Amplitude (use RGB: (x,y,z) to encode with state-prep)
 
-
-# M2: Midterm checkpoint:
+# Ideal heatmap Generation
 
 - Use pre-trained explainable models from: **Explainable-CNN: https://github.com/tavanaei/ExplainableCNN/tree/master**
 
@@ -28,12 +49,6 @@ References
 
     The heatmap in this paper are generated using iNNvestigate: https://arxiv.org/pdf/1808.04260 (https://github.com/albermax/innvestigate?tab=readme-ov-file)
 
-- Quanvolution under different configuration:
-    1. Filter size: 2x2, 3x3, 5x5
-    2. Ansatz type: BasicEntangling, StronglyEntangling
-    3. Embedding type: Angle (rotation angles are averaged over RGB pixels), Amplitude (use RGB: (x,y,z) to encode with state-prep)
-
-
 # TODO for future checkpoints
 
 Use ScoreCAM: non-graident based heatmap explainer 
@@ -41,3 +56,9 @@ Use ScoreCAM: non-graident based heatmap explainer
     Paper: https://arxiv.org/pdf/1910.01279
     
     Code: https://github.com/tabayashi0117/Score-CAM/blob/master/Score-CAM.ipynb
+
+References 
+1. Grad-CAM tutorial: https://xai-tutorials.readthedocs.io/en/latest/_model_specific_xai/Grad-CAM.html
+2. Grad-CAM implementation in TensorFlow keras: https://keras.io/examples/vision/grad_cam/
+3. Quanvolution Neural net: https://pennylane.ai/qml/demos/tutorial_quanvolution
+4. Survey on explainable AI: https://dl.acm.org/doi/10.1145/3563691
