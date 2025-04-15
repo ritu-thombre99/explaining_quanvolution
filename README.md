@@ -8,7 +8,7 @@ conda install -n explainable_qnn ipykernel
 ```
 # Steps to run code:
 
-1. Generation quanvolutional features maps under different QNN setting. Stored as ```.npy``` ub tiny-imagenet-200 directory:
+1. Generation quanvolutional features maps under different QNN setting. Stored as ```.npy``` in tiny-imagenet-200 directory:
 ```
 python run_quanv.py --encoding angle --ansatz basic --filter_size 2
 python run_quanv.py --encoding amplitude --ansatz basic --filter_size 2
@@ -28,11 +28,11 @@ python run_quanv.py --encoding amplitude --ansatz strong --filter_size 2
 
 ```python evaluate_qnns.py```
 
-5. To get the plots (saved as png) and tables (saved as excel):
+5. To get the plots (saved as png) and tables (saved as excel), run the following in Plots directory:
 
 ```python generate_plots.py```
 
-
+### Auxiliary file: ```XAI.py``` is taken from [here](https://github.com/tavanaei/ExplainableCNN/blob/master/Code/XAI.py) required for generating ideal heatmaps from the [encoder-decoder based CNN](https://arxiv.org/pdf/2007.06712)
 # QNN Setup:
 
 - Quanvolution under different configuration:

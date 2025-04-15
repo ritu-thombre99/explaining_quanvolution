@@ -1,125 +1,175 @@
-import numpy as np
 import pandas as pd
 import json
-import dataframe_image as dfi
 import matplotlib.pyplot as plt
+from itertools import product
+import numpy as np
 
-def plot_explainability(configurations, classes, explainability_list):
-    x = np.arange(len(classes))  # x locations for the groups
-    width = 0.5  # Bar width
+def plot_accuracy_f1_score(df, encoding_type, entanglement_type):
+    class_label = ['Jellyfish', 'Cat', 'Grasshopper', 'Dog']
+    temp_df = df[(df.Ansatz == entanglement_type) & (df.Encoding == encoding_type)]
 
-    fig, axes = plt.subplots(2, 2, figsize=(12, 10))  # 2x2 Grid of Plots
-    fig.suptitle('Comparison of Explainibility '+ r'$\mathcal{E}_{QNN}$' + ' per Class Across Configurations', fontsize=14)
-
-    for i, ax in enumerate(axes.flat):
-        explainibilities = explainability_list[i]
-
-        bars = ax.bar(x, explainibilities, width, alpha=0.5, color='green')
-
-        ax.set_xlabel('Classes')
-        ax.set_ylabel(r'$\mathcal{E}_{QNN}$')
-        ax.set_title(configurations[i])
-        ax.set_xticks(x)
-        ax.set_xticklabels(classes)
-        ax.set_ylim(0, 1.2*max(explainibilities))  # Accuracy range 0 to 1
-        ax.grid(True, linestyle='--')
-
-        # Show values on bars
-        for bar in bars:
-            height = bar.get_height()
-            ax.annotate(f'{height:.2f}', xy=(bar.get_x() + bar.get_width() / 2, height),
-                        xytext=(0, 3), textcoords="offset points", ha='center', va='bottom')
-
-    plt.tight_layout(rect=[0, 0, 1, 0.96])  # Adjust layout
-    plt.savefig("Explainibilities.png" , bbox_inches='tight')
-
-
-def plot_accuracy_and_f1(configurations, classes, accuracies_list, f1_scores_list):
-    x = np.arange(len(classes))  # x locations for the groups
-    width = 0.35  # Width of the bars
-
-    fig, axes = plt.subplots(2, 2, figsize=(12, 10))  # 2x2 Grid of Plots
-    fig.suptitle("Accuracy and F1-score per Class for Different Quanvolutions", fontsize=14)
-
-    for i, ax in enumerate(axes.flat):
-        accuracies = accuracies_list[i]
-        f1_scores = f1_scores_list[i]
-
-        bars1 = ax.bar(x - width/2, accuracies, width, label='Accuracy', color='skyblue')
-        bars2 = ax.bar(x + width/2, f1_scores, width, label='F1-score', color='salmon')
-
-        ax.set_xlabel('Classes')
-        ax.set_ylabel('Scores')
-        ax.set_title(configurations[i])
-        ax.set_xticks(x)
-        ax.set_xticklabels(classes)
-        ax.set_ylim(0, 1.2)  # Scores range from 0 to 1
-        ax.grid(True, linestyle='--')
-
-        # Show values on bars
-        for bar in bars1 + bars2:
-            height = bar.get_height()
-            ax.annotate(f'{height:.2f}', xy=(bar.get_x() + bar.get_width() / 2, height),
-                        xytext=(0, 3), textcoords="offset points", ha='center', va='bottom')
-
-    # Move legend outside the last subplot
-    axes[0, 1].legend(loc='center left', bbox_to_anchor=(1,1))
-    plt.tight_layout(rect=[0, 0, 1, 0.96])  # Adjust layout to prevent overlap
-    plt.savefig("Accuracy-F1.png" , bbox_inches='tight')
-
-
-def main():
-    f = open('evaluate.json','r')
-    results = json.load(f)
-    f.close()
-
-    df1 = []
-    configurations = []
-    accuracies_list = []
-    f1_scores_list = []
-    explainability_list = []
-    classes = ['Jellyfish', 'Cat', 'Grasshopper', 'Dog']
-    for config in results:
-        dict1 = {}
-        encoding, ansatz, _ = config.split(",")
-        avg_metrics = results[config][1]
-        dict1["Encoding"] = encoding
-        dict1["Ansatz"] = ansatz
-        dict1["Accuracy"] = np.round(avg_metrics[0],4)
-        dict1["F1-Score"] = np.round(avg_metrics[1],4)
-        dict1["Precision"] = np.round(avg_metrics[2],4)
-        dict1["Recall"] = np.round(avg_metrics[3],4)
-        dict1["Explainability"] = np.round(avg_metrics[4],4)
-        df1.append(dict1)
-
-        configurations.append("Encoding: "+encoding+" | "+"Entanglement: "+ansatz)
-        class_metrics = results[config][2]
-
-        accuracies_list.append([
-                    np.round(class_metrics['0'][0],4), 
-                    np.round(class_metrics['1'][0],4), 
-                    np.round(class_metrics['2'][0],4), 
-                    np.round(class_metrics['3'][0],4)
-                ])
-        f1_scores_list.append([
-                    np.round(class_metrics['0'][1],4), 
-                    np.round(class_metrics['1'][1],4), 
-                    np.round(class_metrics['2'][1],4), 
-                    np.round(class_metrics['3'][1],4)
-                ])
-        explainability_list.append([
-                    np.round(class_metrics['0'][4],4), 
-                    np.round(class_metrics['1'][4],4), 
-                    np.round(class_metrics['2'][4],4), 
-                    np.round(class_metrics['3'][4],4)
-                ])
+    accuracy_error, f1_score_error = [],[]
+    accuracy, f1_score = [], []
+    min_accuracy, min_f1_score = [], []
+    max_accuracy, max_f1_score = [], []
+    for class_index in range(len(class_label)):
+        accuracy_error.append(np.std(list(temp_df['Accuracy '+str(class_index)])).item())
+        f1_score_error.append(np.std(list(temp_df['F1-Score '+str(class_index)])).item())
     
+        accuracy.append(temp_df["Accuracy "+str(class_index)].mean())
+        f1_score.append(temp_df["F1-Score "+str(class_index)].mean())
 
-    df1 = pd.DataFrame(df1)
-    df1.to_csv('main-result.csv',index = False)
-    dfi.export(df1.style.hide(axis='index'), 'main-result.png')
-    plot_accuracy_and_f1(configurations, classes, accuracies_list, f1_scores_list)
-    plot_explainability(configurations, classes, explainability_list)
+        min_accuracy.append(temp_df["Accuracy "+str(class_index)].min())
+        min_f1_score.append(temp_df["F1-Score "+str(class_index)].min())
+
+        max_accuracy.append(temp_df["Accuracy "+str(class_index)].max())
+        max_f1_score.append(temp_df["F1-Score "+str(class_index)].max())
+
+    fig, ax = plt.subplots(figsize = (10,8))
+    width = 0.35
+    x = np.arange(len(class_label))
+
+    bars1 = ax.bar(x - width/2, accuracy, width, label='Accuracy', yerr = accuracy_error, alpha=0.6)
+    bars2 = ax.bar(x + width/2, f1_score, width, label='F1-score', yerr = f1_score_error, alpha=0.6)
+
+    ax.set_xlabel('Classes',fontsize=20)
+    ax.set_ylabel('Scores',fontsize=20)
+    ax.set_title("Accuracy and F1-Score per class: Encoding: "+encoding_type+" | "+"Entanglement: "+entanglement_type,fontsize=20)
+    ax.set_xticks(x)
+    ax.set_xticklabels(class_label,fontsize=20)
+    ax.set_ylim(0, 1.3)  # Scores range from 0 to 1
+    ax.grid(True, linestyle='--')
+    ax.legend(fontsize=20)
+
+    # Show values on bars
+    for i,bar in enumerate(bars1 + bars2):
+        height = bar.get_height()
+        y_pos = 0
+        if i < 4:
+            y_pos = max_accuracy[i]
+        else:
+            y_pos = max_f1_score[i%4]
+        ax.annotate(f'{height:.2f}', xy=(bar.get_x() + bar.get_width() / 2, y_pos),
+                    xytext=(0, 3), textcoords="offset points", ha='center', va='bottom', fontsize=20)
+    plt.savefig("Accuracy-F1-" + str(encoding_type) + "-" + str(entanglement_type) + ".png" , bbox_inches='tight')
+
+def plot_exp(df, encoding_type, entanglement_type):
+    class_label = ['Jellyfish', 'Cat', 'Grasshopper', 'Dog']
+    temp_df = df[(df.Ansatz == entanglement_type) & (df.Encoding == encoding_type)]
+
+    exp_error = []
+    mean, min, max = [], [], []
+    for class_index in range(len(class_label)):
+        exp_error.append(np.std(list(temp_df['Explainibility '+str(class_index)])).item())
+        mean.append(temp_df['Explainibility '+str(class_index)].mean())
+        min.append(temp_df['Explainibility '+str(class_index)].min())
+        max.append(temp_df['Explainibility '+str(class_index)].max())
+
+    fig, ax = plt.subplots(figsize = (10,8))
+    width = 0.5
+    x = np.arange(len(class_label))
+
+    bars1 = ax.bar(x - width/2, mean, width, yerr = exp_error, color = 'green',alpha=0.6)
+
+    ax.set_xlabel('Classes',fontsize=20)
+    ax.set_ylabel(r'$\mathcal{E}_{QNN}$',fontsize=20)
+    ax.set_title("Explainibility "+ r'$\mathcal{E}_{QNN}$' + " per class: Encoding: "+encoding_type+" | "+"Entanglement: "+entanglement_type,fontsize=20)
+    ax.set_xticks(x)
+    ax.set_xticklabels(class_label,fontsize=20)
+    ax.set_ylim(0, 40)  # Scores range from 0 to 1
+    ax.grid(True, linestyle='--')
+
+    # Show values on bars
+    for i,bar in enumerate(bars1):
+        height = bar.get_height()
+        y_pos = max[i]
+        ax.annotate(f'{height:.2f}', xy=(bar.get_x() + bar.get_width() / 2, y_pos),
+                    xytext=(0, 3), textcoords="offset points", ha='center', va='bottom', fontsize=20)
+    plt.savefig("Explainibility-" + str(encoding_type) + "-" + str(entanglement_type) + ".png" , bbox_inches='tight')
+
+def average_metrics_table(df):
+    result_df = pd.DataFrame(columns = ["Encoding", "Entanglement", 
+                                "Average Accuracy", "Stdev Accuracy",
+                                "Average F1-Score", "Stdev F1-Score",
+                                "Average Explainibility","Stdev Explainibility"])
+    enocdings = ['angle','amplitude']
+    ansatz = ['basic','strong']
+    for encoding_type, ansatz_type in product(enocdings, ansatz):
+        temp_df = df[(df.Ansatz == ansatz_type) & (df.Encoding == encoding_type)]
+        result_df.loc[len(result_df)] = [encoding_type, ansatz_type, 
+                    temp_df['Average Accuracy'].mean(), 
+                    np.std(list(temp_df['Average Accuracy'])).item(),
+                    temp_df['Average F1-Score'].mean(),
+                    np.std(list(temp_df['Average F1-Score'])).item(),
+                    temp_df['Average Explainibility'].mean(),
+                    np.std(list(temp_df['Average Explainibility'])).item()
+               ]
+    result_df.to_excel("average_results.xlsx", index=False)
+
+def plot_metric(metric_array, ax, label, color):
+    mean = np.mean(metric_array, axis=0)
+    std = np.std(metric_array, axis=0)
+    epochs = np.arange(len(mean))
+    ax.plot(epochs, mean, label=label, color=color)
+    ax.fill_between(epochs, mean - std, mean + std, alpha=0.3, color=color)
+
+def plot_training_history(encoding_type, entanglement_type, training_acc, training_loss, val_acc, val_loss):
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6, 9))
+    title = "Accuracy and Loss for Encoding: "+encoding_type+" | "+"Entanglement: "+entanglement_type
+    fig.suptitle(title)
+
+    # Plot Accuracy
+    plot_metric(training_acc, ax1, 'Train Accuracy', 'blue')
+    plot_metric(val_acc, ax1, 'Validation Accuracy', 'orange')
+    ax1.set_ylabel("Accuracy")
+    ax1.grid()
+    ax1.set_xlabel("Epoch")
+    ax1.legend()
+
+    # Plot loss
+    plot_metric(training_loss, ax2, 'Train Loss', 'blue')
+    plot_metric(val_loss, ax2, 'Validation Loss', 'orange')
+    ax2.set_ylabel("Loss")
+    ax2.grid()
+    ax2.set_xlabel("Epoch")
+    ax2.legend()
+
+    plt.savefig("Accuracy-Loss-" + str(encoding_type) + "-" + str(entanglement_type) + ".png" , bbox_inches='tight')
 
 if __name__ == "__main__":
-    main()
+    with open('results.json','r') as f:
+        file_content = [json.loads(line) for line in f.readlines()]
+    df = pd.DataFrame()
+    for line in file_content:
+        df = df._append(line, ignore_index=True)
+    enocdings = ['angle','amplitude']
+    ansatz = ['basic','strong']
+    for encoding_type, ansatz_type in product(enocdings, ansatz):
+        plot_accuracy_f1_score(df, encoding_type, ansatz_type)
+        plot_exp(df, encoding_type, ansatz_type)
+    average_metrics_table(df)
+
+    f = open('training_history.json','r')
+    lines = f.readlines()[0].split("}{")
+    lines = lines[1:]
+    lines = lines[:-1]
+    f.close()
+    file_content = [json.loads("{"+line+"}") for line in lines]
+    for encoding_type, ansatz_type in product(enocdings, ansatz):
+        training_loss, val_loss, training_acc, val_acc = [], [], [], []
+        for line in file_content:
+            if line["Encoding"] == encoding_type and line["Ansatz"] == ansatz_type:
+                training_acc.append(line["Training Accuracy"])
+                training_loss.append(line["Training Loss"])
+                val_acc.append(line["Validation Accuracy"])
+                val_loss.append(line["Validation Loss"])
+        training_acc = np.array(training_acc)
+        training_loss = np.array(training_loss)
+        val_acc = np.array(val_acc)
+        val_loss = np.array(val_loss)
+        plot_training_history(encoding_type, ansatz_type, training_acc, training_loss, val_acc, val_loss)
+    
+
+
+
+            
