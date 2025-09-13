@@ -3,6 +3,7 @@ import os
 from glob import glob
 from tqdm import tqdm
 import pennylane as qml
+from catalyst import qjit
 import numpy as np
 import numpy
 from PIL import Image
@@ -15,18 +16,31 @@ config['encoding'] = 'angle'
 config['ansatz'] = 'basic'
 config['filter_size'] = 2
 
+def make_quanv_filter():
+    # find wherever JPEG images are and quanvolute them
+    original_dir = "tiny-imagenet-200"
 
+    # remove previous npy files
+    npy_files = [y for x in os.walk(original_dir) for y in glob(os.path.join(x[0], '*.npy'))]
+    for npy in npy_files:
+        os.remove(npy)
 
-def make_quanv_filter(image, encoding, ansatz, filter_size):
+    jpeg_files = [y for x in os.walk(original_dir) for y in glob(os.path.join(x[0], '*.JPEG'))]
+
+    encoding = config['encoding']
+    ansatz = config['ansatz']
+    filter_size = config['filter_size']
     num_wires = filter_size**2
-    dev = qml.device("default.qubit", wires=num_wires)
+    dev = qml.device("lightning.qubit", wires=num_wires)
+    @qjit
     @qml.qnode(dev)
     def circuit(patch):
         # Encoding
-        patch = patch.reshape(patch.shape[0]**2, patch.shape[2])
+        print(patch.shape)
+        # patch = patch.reshape(patch.shape[0]**2, patch.shape[2])
         if encoding == 'angle':
             for patch_index in range(len(patch)):
-                rot_angle = (patch[patch_index][0] + patch[patch_index][1] + patch[patch_index][2])/3
+                rot_angle = np.mean(patch[patch_index])
                 qml.RY(np.pi * (rot_angle), wires = patch_index)
         elif encoding == 'amplitude':
             for patch_index in range(len(patch)):
@@ -45,14 +59,22 @@ def make_quanv_filter(image, encoding, ansatz, filter_size):
         # Measurement producing (filter_size * filter_size) classical output values
         return [qml.expval(qml.PauliZ(patch_index)) for patch_index in range(len(patch))]
     
-    # Quanvolute over the image
-    out = []
-    for i in range(0,image.shape[0], filter_size):
-        row = []
-        for j in range(0,image.shape[1], filter_size):
-            row.append(circuit(image[i:i+filter_size, j:j+filter_size, :]))
-        out.append(row)
-    out = np.array(out)
+    # create new npy files
+    for jpeg in tqdm(jpeg_files):
+        image_path = '/'.join(jpeg.split("/")[:-1])
+        image_name = jpeg.split("/")[-1].replace('.JPEG','')
+        image = numpy.asarray(Image.open(jpeg).convert('RGB'))
+        image = image / 255 # normalize
+        # Quanvolute over the image
+        out = []
+        for i in range(0,image.shape[0], filter_size):
+            row = []
+            for j in range(0,image.shape[1], filter_size):
+                image_patch = image[i:i+filter_size, j:j+filter_size, :]
+                row.append(circuit(image_patch))
+            out.append(row)
+        out = np.array(out)
+        np.save(image_path + "/" + image_name + "-" + config['encoding'] + "-" + config['ansatz'] + "-" + str(config['filter_size']) + ".npy", out)
     return out
 
 
@@ -62,7 +84,7 @@ def main():
                         choices=['angle','amplitude'],help="choose the type of encoding to encode pixels into qubit. Default is angle")
     parser.add_argument("--ansatz",type=str,
                         choices=['basic','strong'],help="choose the type of ansatz to apply after encoding. Default is basic")
-    parser.add_argument("--filter_size",choices=[2,3,5],type=int,help="Enter the quanvolution filter size (2x2,3x3,5x5). Default is 2x2")
+    parser.add_argument("--filter_size",choices=[2,3,4,5],type=int,help="Enter the quanvolution filter size (2x2,3x3,5x5). Default is 2x2")
 
     args = parser.parse_args()
     
@@ -79,28 +101,12 @@ def main():
     if config['ansatz'] not in ['basic', 'strong']:
         print("Invalid ansatz. Allowed: basic and strong")
         return
-    if config['filter_size'] not in [2,3,5]:
+    if config['filter_size'] not in [2,3,4,5]:
         print("Invalid filter size. Choose from [2x2, 3x3, 5x5]")
         return
     
     print("Running with config:", config)
-    # find wherever JPEG images are and quanvolute them
-    original_dir = "tiny-imagenet-200"
-
-    # remove previous npy files
-    npy_files = [y for x in os.walk(original_dir) for y in glob(os.path.join(x[0], '*.npy'))]
-    for npy in npy_files:
-        os.remove(npy)
-
-    # create new npy files
-    jpeg_files = [y for x in os.walk(original_dir) for y in glob(os.path.join(x[0], '*.JPEG'))]
-    for jpeg in tqdm(jpeg_files):
-        image_path = '/'.join(jpeg.split("/")[:-1])
-        image_name = jpeg.split("/")[-1].replace('.JPEG','')
-        image = numpy.asarray(Image.open(jpeg).convert('RGB'))
-        image = image / 255 # normalize
-        quanv_output = make_quanv_filter(image, config['encoding'], config['ansatz'], config['filter_size'])
-        np.save(image_path + "/" + image_name + "-" + config['encoding'] + "-" + config['ansatz'] + "-" + str(config['filter_size']) + ".npy", quanv_output)
+    make_quanv_filter()
 
 if __name__ == "__main__":
     main()
