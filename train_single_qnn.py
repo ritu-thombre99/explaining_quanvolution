@@ -102,6 +102,6 @@ def train_curr_qnn(iter = None):
 
     enocdings = ['angle','amplitude']
     ansatz = ['basic','strong']
-    kernel_sizes = [2]
+    kernel_sizes = [4]
     for encoding_type, ansatz_type, kernel_size in product(enocdings, ansatz, kernel_sizes):
         train_qnn_model(encoding_type, ansatz_type, kernel_size, optimizer[(encoding_type, ansatz_type)], iter)
