@@ -24,7 +24,8 @@ def make_quanv_filter():
     # remove previous npy files
     npy_files = [y for x in os.walk(original_dir) for y in glob(os.path.join(x[0], '*.npy'))]
     for npy in npy_files:
-        os.remove(npy)
+        if config['ansatz'] in npy and config['encoding'] in npy:
+            os.remove(npy)
 
     jpeg_files = [y for x in os.walk(original_dir) for y in glob(os.path.join(x[0], '*.JPEG'))]
 
