@@ -10,6 +10,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from itertools import product
 from helpers import cart2sph
+import jax.numpy as jnp
 
 config = {}
 config['encoding'] = 'angle'
@@ -36,16 +37,18 @@ def make_quanv_filter():
     @qml.qnode(dev)
     def circuit(patch):
         # Encoding
-        print(patch.shape)
-        # patch = patch.reshape(patch.shape[0]**2, patch.shape[2])
+        patch = patch.reshape(patch.shape[0]**2, patch.shape[2]) # flatten
         if encoding == 'angle':
             for patch_index in range(len(patch)):
                 rot_angle = np.mean(patch[patch_index])
                 qml.RY(np.pi * (rot_angle), wires = patch_index)
         elif encoding == 'amplitude':
             for patch_index in range(len(patch)):
-                theta, phi = cart2sph(patch[patch_index][0], patch[patch_index][1], patch[patch_index][2])
-                state = [np.sin(theta/2), np.exp(1j*phi)*np.cos(theta/2)]
+                theta, phi = cart2sph(patch[patch_index])
+                state = jnp.array(
+                    [jnp.sin(theta/2), jnp.exp(1j*phi) * jnp.cos(theta/2)],
+                    dtype=jnp.complex128
+                )
                 qml.StatePrep(state, wires=patch_index, normalize=True)
 
         # Ansatz

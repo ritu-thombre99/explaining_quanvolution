@@ -3,16 +3,14 @@ import tensorflow as tf
 from tensorflow import keras
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 
-def cart2sph(x, y, z):
-   r = np.sqrt(x**2 + y**2 + z**2) # r = sqrt(x² + y² + z²)
-   if r == 0:
-      return 0,0
-   # normalize
-   x,y,z = x/r, y/r, z/r
-   # compute
-   xy = np.sqrt(x**2 + y**2) # sqrt(x² + y²)
-   theta = np.arctan2(y, x) 
-   phi = np.arctan2(xy, z) 
+import jax.numpy as jnp
+
+def cart2sph(vec):
+   x, y, z = vec
+   r = jnp.linalg.norm(vec)
+
+   theta = jnp.where(r > 0, jnp.arccos(z / r), 0.0)
+   phi = jnp.where(r > 0, jnp.arctan2(y, x), 0.0)
    return theta, phi
 
 def classwise_metrics(y_actual, y_pred, explanilibity, class_label):

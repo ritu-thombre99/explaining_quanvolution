@@ -13,3 +13,4 @@ node_modules/.cache/prettier/.prettier-caches
 *.zip
 *.hdf5
 .conda
+run.sh
