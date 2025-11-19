@@ -15,8 +15,6 @@ def MyModel(x_train, max_class_allowed):
     model = keras.models.Sequential([
         keras.Input(shape=(x_train[0].shape)),
         keras.layers.Flatten(),
-        keras.layers.Dense(1024, activation="relu", kernel_regularizer=keras.regularizers.l2(1e-4)),
-        keras.layers.Dropout(0.35),
         keras.layers.Dense(512, activation="relu", kernel_regularizer=keras.regularizers.l2(1e-4)),
         keras.layers.Dropout(0.25),
         keras.layers.Dense(256, activation="relu", kernel_regularizer=keras.regularizers.l2(1e-4)),
@@ -69,7 +67,7 @@ def train_qnn_model(encoding, ansatz, filter_size, model_iter = None):
     history = History()
     q_model = MyModel(train_x, max_class_allowed)
 
-    n_epochs = 500
+    n_epochs = 1000
     q_history = q_model.fit(
         train_x,
         train_y,
