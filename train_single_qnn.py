@@ -16,16 +16,16 @@ def MyModel(x_train, max_class_allowed):
         keras.Input(shape=(x_train[0].shape)),
         keras.layers.MaxPooling2D(pool_size=(2, 2), strides=2),
         keras.layers.Flatten(),
-        keras.layers.Dense(400, activation="relu", kernel_regularizer=keras.regularizers.l2(1e-4)),
-        keras.layers.Dropout(0.25),
-        keras.layers.Dense(100, activation="relu", kernel_regularizer=keras.regularizers.l2(1e-4)),
-        keras.layers.Dropout(0.25),
-        keras.layers.Dense(50, activation="relu", kernel_regularizer=keras.regularizers.l2(1e-4)),
+        keras.layers.Dropout(0.01),
+        keras.layers.Dense(400, activation="sigmoid"),# kernel_regularizer=keras.regularizers.l2(1e-3)),
+        keras.layers.Dense(100, activation="sigmoid"),# kernel_regularizer=keras.regularizers.l2(1e-3)),
+        keras.layers.Dropout(0.01),
+        keras.layers.Dense(50, activation="sigmoid"),# kernel_regularizer=keras.regularizers.l2(1e-3)),
         keras.layers.Dense(max_class_allowed, activation="sigmoid"),
     ])
 
     model.compile(
-        optimizer=keras.optimizers.Nadam(learning_rate=1e-5),
+        optimizer=keras.optimizers.Nadam(learning_rate=1e-4),
         loss="sparse_categorical_crossentropy",
         metrics=["accuracy"],
     )

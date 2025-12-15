@@ -133,8 +133,8 @@ def compare_metrics(encoding_type, ansatz_type, curr_qnn, kernel_size = 2):
     x_original_train, x_quanv_train, y_train = x_original[:last_index_for_train], x_quanv[:last_index_for_train], y[:last_index_for_train]
     x_original_test, x_quanv_test, y_test = x_original[last_index_for_train:], x_quanv[last_index_for_train:], y[last_index_for_train:]
     caliberate_metrics(qnn, x_original, x_quanv, y, type = "All")
-    caliberate_metrics(x_original_train, x_quanv_train, y_train, type = "Train")
-    caliberate_metrics(x_original_test, x_quanv_test, y_test, y, type = "Test")
+    caliberate_metrics(qnn, x_original_train, x_quanv_train, y_train, type = "Train")
+    caliberate_metrics(qnn, x_original_test, x_quanv_test, y_test, type = "Test")
 
     
 if __name__ == "__main__":
