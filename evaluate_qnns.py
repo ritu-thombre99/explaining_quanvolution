@@ -17,7 +17,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 device = torch.device('cpu')
-xcnn = torch.load('./Models/Model_TinyImageNet_128.net', map_location=torch.device('cpu')).to(device)
+xcnn = torch.load('./Models/Model_TinyImageNet_128.net', weights_only=False, map_location=torch.device('cpu')).to(device)
 train_test_split = 0.7
 
 def get_data(encoding, ansatz, filter_size):
