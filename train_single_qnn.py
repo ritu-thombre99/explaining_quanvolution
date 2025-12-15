@@ -8,30 +8,30 @@ import numpy as np
 import matplotlib.pyplot as plt
 from keras.callbacks import History 
 
-train_test_split = 0.75
-def MyModel(x_train, max_class_allowed, optimizer = 'nadam'):
+train_test_split = 0.7
+def MyModel(x_train, max_class_allowed):
     """Initializes and returns a custom Keras model
     which is ready to be trained."""
     model = keras.models.Sequential([
         keras.Input(shape=(x_train[0].shape)),
         keras.layers.MaxPooling2D(pool_size=(2, 2), strides=2),
         keras.layers.Flatten(),
-        keras.layers.Dropout(0.01),
-        keras.layers.Dense(400, activation="sigmoid"),
-        keras.layers.Dense(100, activation="sigmoid"),
-        keras.layers.Dropout(0.01),
-        keras.layers.Dense(50, activation="sigmoid"),
+        keras.layers.Dense(400, activation="relu", kernel_regularizer=keras.regularizers.l2(1e-4)),
+        keras.layers.Dropout(0.25),
+        keras.layers.Dense(100, activation="relu", kernel_regularizer=keras.regularizers.l2(1e-4)),
+        keras.layers.Dropout(0.25),
+        keras.layers.Dense(50, activation="relu", kernel_regularizer=keras.regularizers.l2(1e-4)),
         keras.layers.Dense(max_class_allowed, activation="sigmoid"),
     ])
 
     model.compile(
-        optimizer=optimizer,
+        optimizer=keras.optimizers.Nadam(learning_rate=1e-5),
         loss="sparse_categorical_crossentropy",
         metrics=["accuracy"],
     )
     return model
 
-def train_qnn_model(encoding, ansatz, filter_size, optimizer, model_iter = None):
+def train_qnn_model(encoding, ansatz, filter_size, model_iter = None):
     train, test =  [],[]
     dirpath = './tiny-imagenet-200/train'
     wnids = os.listdir(dirpath) 
@@ -48,9 +48,6 @@ def train_qnn_model(encoding, ansatz, filter_size, optimizer, model_iter = None)
         train = train + data[:last_index]
         test = test + data[last_index:]
 
-    shuffle(train)
-    shuffle(test)
-
     train_x, train_y, test_x, test_y = [], [], [], []
     for train_item in train:
         train_x.append(train_item[0])
@@ -66,13 +63,13 @@ def train_qnn_model(encoding, ansatz, filter_size, optimizer, model_iter = None)
     test_y = np.array(test_y)
 
     history = History()
-    q_model = MyModel(train_x, max_class_allowed, optimizer = optimizer)
+    q_model = MyModel(train_x, max_class_allowed)
 
-    n_epochs = 500
+    n_epochs = 750
     q_history = q_model.fit(
         train_x,
         train_y,
-        validation_data=(test_x[:len(test_x)//4], test_y[:len(test_y)//4]),
+        validation_data=(test_x[:len(test_x)//2], test_y[:len(test_y)//2]),
         batch_size=32,
         epochs=n_epochs,
         verbose=2,
@@ -93,15 +90,8 @@ def train_qnn_model(encoding, ansatz, filter_size, optimizer, model_iter = None)
     q_model.save("./Models/qnn-"+ encoding + "_" + ansatz + "_" + str(model_iter) +".h5")
 
 def train_curr_qnn(iter = None):
-    # optimal optimizers from GridSearchCV
-    optimizer = {}
-    optimizer[('angle','basic')] = 'nadam'
-    optimizer[('angle','strong')] = 'adam'
-    optimizer[('amplitude','basic')] = 'nadam'
-    optimizer[('amplitude','strong')] = 'nadam'
-
     enocdings = ['angle','amplitude']
     ansatz = ['basic','strong']
     kernel_sizes = [2]
     for encoding_type, ansatz_type, kernel_size in product(enocdings, ansatz, kernel_sizes):
-        train_qnn_model(encoding_type, ansatz_type, kernel_size, optimizer[(encoding_type, ansatz_type)], iter)
+        train_qnn_model(encoding_type, ansatz_type, kernel_size, iter)

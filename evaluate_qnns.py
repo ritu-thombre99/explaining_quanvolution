@@ -18,6 +18,7 @@ warnings.filterwarnings("ignore")
 
 device = torch.device('cpu')
 xcnn = torch.load('./Models/Model_TinyImageNet_128.net', map_location=torch.device('cpu')).to(device)
+train_test_split = 0.7
 
 def get_data(encoding, ansatz, filter_size):
     x_original, x_quanv ,y = [],[], []
@@ -76,10 +77,7 @@ def calculate_explainability(heatmap_qnn, heatmap_xcnn):
         return -1
     return explanilibity
 
-def compare_metrics(encoding_type, ansatz_type, curr_qnn, kernel_size = 2):
-    qnn = load_model("./Models/qnn-"+ encoding_type + "_" + ansatz_type + "_" + str(curr_qnn) +".h5")
-    x_original, x_quanv, y = get_data(encoding_type, ansatz_type, kernel_size)
-
+def caliberate_metrics(qnn, x_original, x_quanv, y, type = None):
     explanilibity = []
     sum_explanilibity = 0
     for i in tqdm(range(len(x_original))):
@@ -98,7 +96,7 @@ def compare_metrics(encoding_type, ansatz_type, curr_qnn, kernel_size = 2):
                             recall_score(y,predictions, average='weighted'),
                             sum_explanilibity/len(explanilibity)
                         ]
-
+    print("Type:", type)
     print("Acc:",average_metrics[0])
     print("F1:",average_metrics[1])
     print("Precision:",average_metrics[2])
@@ -106,6 +104,7 @@ def compare_metrics(encoding_type, ansatz_type, curr_qnn, kernel_size = 2):
     print("Explainibility:",average_metrics[4])
 
     model_results = {}
+    model_results["Type"] = type
     model_results["Encoding"] = encoding_type
     model_results["Ansatz"] = ansatz_type
     model_results["Iteration"] = curr_qnn
@@ -126,6 +125,17 @@ def compare_metrics(encoding_type, ansatz_type, curr_qnn, kernel_size = 2):
     with open("./Plots/results.json", "a") as f:
         json.dump(model_results, f)
         f.write("\n")
+def compare_metrics(encoding_type, ansatz_type, curr_qnn, kernel_size = 2):
+    qnn = load_model("./Models/qnn-"+ encoding_type + "_" + ansatz_type + "_" + str(curr_qnn) +".h5")
+    x_original, x_quanv, y = get_data(encoding_type, ansatz_type, kernel_size)
+
+    last_index_for_train = int(train_test_split*len(x_original))
+    x_original_train, x_quanv_train, y_train = x_original[:last_index_for_train], x_quanv[:last_index_for_train], y[:last_index_for_train]
+    x_original_test, x_quanv_test, y_test = x_original[last_index_for_train:], x_quanv[last_index_for_train:], y[last_index_for_train:]
+    caliberate_metrics(qnn, x_original, x_quanv, y, type = "All")
+    caliberate_metrics(x_original_train, x_quanv_train, y_train, type = "Train")
+    caliberate_metrics(x_original_test, x_quanv_test, y_test, y, type = "Test")
+
     
 if __name__ == "__main__":
     # Clean file to generate new results
