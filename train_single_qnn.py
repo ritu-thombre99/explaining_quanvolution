@@ -14,18 +14,23 @@ def MyModel(x_train, max_class_allowed):
     which is ready to be trained."""
     model = keras.models.Sequential([
         keras.Input(shape=(x_train[0].shape)),
-        keras.layers.MaxPooling2D(pool_size=(2, 2), strides=2),
         keras.layers.Flatten(),
-        keras.layers.Dropout(0.01),
-        keras.layers.Dense(400, activation="sigmoid"),# kernel_regularizer=keras.regularizers.l2(1e-3)),
-        keras.layers.Dense(100, activation="sigmoid"),# kernel_regularizer=keras.regularizers.l2(1e-3)),
-        keras.layers.Dropout(0.01),
-        keras.layers.Dense(50, activation="sigmoid"),# kernel_regularizer=keras.regularizers.l2(1e-3)),
-        keras.layers.Dense(max_class_allowed, activation="sigmoid"),
+        # First dense block
+        keras.layers.Dense(128, kernel_regularizer=keras.regularizers.l2(1e-3)),
+        keras.layers.BatchNormalization(),
+        keras.layers.ReLU(),
+        keras.layers.Dropout(0.4),
+
+        # Second dense block
+        keras.layers.Dense(64, kernel_regularizer=keras.regularizers.l2(1e-3)),
+        keras.layers.BatchNormalization(),
+        keras.layers.ReLU(),
+        keras.layers.Dropout(0.4),
+        keras.layers.Dense(max_class_allowed, activation='softmax')
     ])
 
     model.compile(
-        optimizer=keras.optimizers.Nadam(learning_rate=1e-4),
+        optimizer=keras.optimizers.Adam(learning_rate=1e-4),
         loss="sparse_categorical_crossentropy",
         metrics=["accuracy"],
     )
@@ -65,7 +70,8 @@ def train_qnn_model(encoding, ansatz, filter_size, model_iter = None):
     history = History()
     q_model = MyModel(train_x, max_class_allowed)
 
-    n_epochs = 750
+    n_epochs = 1000
+    early_stop = keras.callbacks.EarlyStopping(monitor='val_accuracy', patience=15, restore_best_weights=True)
     q_history = q_model.fit(
         train_x,
         train_y,
@@ -73,7 +79,7 @@ def train_qnn_model(encoding, ansatz, filter_size, model_iter = None):
         batch_size=32,
         epochs=n_epochs,
         verbose=2,
-        callbacks=[history])
+        callbacks=[history, early_stop])
 
     save_model_history = {}
     save_model_history["Encoding"] = encoding

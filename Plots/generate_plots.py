@@ -163,10 +163,28 @@ if __name__ == "__main__":
                 training_loss.append(line["Training Loss"])
                 val_acc.append(line["Validation Accuracy"])
                 val_loss.append(line["Validation Loss"])
-        training_acc = np.array(training_acc)
-        training_loss = np.array(training_loss)
-        val_acc = np.array(val_acc)
-        val_loss = np.array(val_loss)
+        
+        max_training_acc = max(len(row) for row in training_acc)
+        training_acc = np.array([
+            row + [np.nan] * (max_training_acc - len(row))
+            for row in training_acc])
+
+        max_training_loss = max(len(row) for row in training_loss)
+        training_loss = np.array([
+            row + [np.nan] * (max_training_loss - len(row))
+            for row in training_loss])
+
+
+        max_val_acc = max(len(row) for row in val_acc)
+        val_acc = np.array([
+            row + [np.nan] * (max_val_acc - len(row))
+            for row in val_acc])
+
+        max_val_loss = max(len(row) for row in val_loss)
+        val_loss = np.array([
+            row + [np.nan] * (max_val_loss - len(row))
+            for row in val_loss])
+
         plot_training_history(encoding_type, ansatz_type, training_acc, training_loss, val_acc, val_loss)
     
 
