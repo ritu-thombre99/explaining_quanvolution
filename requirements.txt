@@ -14,3 +14,4 @@ scikit-learn==1.5.2
 dataframe-image
 pandas
 openpyxl
+dataframe-image

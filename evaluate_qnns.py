@@ -128,13 +128,14 @@ def caliberate_metrics(qnn, x_original, x_quanv, y, type = None):
 def compare_metrics(encoding_type, ansatz_type, curr_qnn, kernel_size = 2):
     qnn = load_model("./Models/qnn-"+ encoding_type + "_" + ansatz_type + "_" + str(curr_qnn) +".h5")
     x_original, x_quanv, y = get_data(encoding_type, ansatz_type, kernel_size)
-
-    last_index_for_train = int(train_test_split*len(x_original))
-    x_original_train, x_quanv_train, y_train = x_original[:last_index_for_train], x_quanv[:last_index_for_train], y[:last_index_for_train]
-    x_original_test, x_quanv_test, y_test = x_original[last_index_for_train:], x_quanv[last_index_for_train:], y[last_index_for_train:]
     caliberate_metrics(qnn, x_original, x_quanv, y, type = "All")
-    caliberate_metrics(qnn, x_original_train, x_quanv_train, y_train, type = "Train")
-    caliberate_metrics(qnn, x_original_test, x_quanv_test, y_test, type = "Test")
+
+    # caliberate for train and test separately
+    # last_index_for_train = int(train_test_split*len(x_original))
+    # x_original_train, x_quanv_train, y_train = x_original[:last_index_for_train], x_quanv[:last_index_for_train], y[:last_index_for_train]
+    # x_original_test, x_quanv_test, y_test = x_original[last_index_for_train:], x_quanv[last_index_for_train:], y[last_index_for_train:]
+    # caliberate_metrics(qnn, x_original_train, x_quanv_train, y_train, type = "Train")
+    # caliberate_metrics(qnn, x_original_test, x_quanv_test, y_test, type = "Test")
 
     
 if __name__ == "__main__":

@@ -3,9 +3,28 @@ import json
 import matplotlib.pyplot as plt
 from itertools import product
 import numpy as np
+import dataframe_image as dfi
+import os
+
+wnid_to_class_label = {
+                        "n01910747":"Jellyfish",
+                        "n02106662":"Dog",
+                        "n02124075":"Cat",
+                        "n02226429":"Grasshopper"
+                    }
+
+# class label is name of the animal, index is class index
+# index can vary depending on OS platform i.e. order in which directories are loaded
+# to fix that we add the order in which directories are loaded
+dirpath = '../tiny-imagenet-200/train'
+wnids = os.listdir(dirpath) 
+max_class_allowed = len(wnids)
+class_label = []
+for class_index, class_path in enumerate(wnids):
+    class_label.append(wnid_to_class_label[class_path])
+
 
 def plot_accuracy_f1_score(df, encoding_type, entanglement_type, result_type):
-    class_label = ['Jellyfish', 'Cat', 'Grasshopper', 'Dog']
     temp_df = df[(df.Ansatz == entanglement_type) & (df.Encoding == encoding_type) & (df.Type == result_type)]
 
     accuracy_error, f1_score_error = [],[]
@@ -54,7 +73,6 @@ def plot_accuracy_f1_score(df, encoding_type, entanglement_type, result_type):
     plt.savefig(result_type + "-Accuracy-F1-" + str(encoding_type) + "-" + str(entanglement_type) + ".png" , bbox_inches='tight')
 
 def plot_exp(df, encoding_type, entanglement_type, result_type):
-    class_label = ['Jellyfish', 'Cat', 'Grasshopper', 'Dog']
     temp_df = df[(df.Ansatz == entanglement_type) & (df.Encoding == encoding_type) & (df.Type == result_type)]
 
     exp_error = []
@@ -65,7 +83,7 @@ def plot_exp(df, encoding_type, entanglement_type, result_type):
         min.append(temp_df['Explainibility '+str(class_index)].min())
         max.append(temp_df['Explainibility '+str(class_index)].max())
 
-    fig, ax = plt.subplots(figsize = (10,8))
+    fig, ax = plt.subplots(figsize = (10,10))
     width = 0.5
     x = np.arange(len(class_label))
 
@@ -76,7 +94,7 @@ def plot_exp(df, encoding_type, entanglement_type, result_type):
     ax.set_title(result_type + " Explainibility "+ r'$\mathcal{E}_{QNN}$' + " per class: Encoding: "+encoding_type+" | "+"Entanglement: "+entanglement_type,fontsize=20)
     ax.set_xticks(x)
     ax.set_xticklabels(class_label,fontsize=20)
-    ax.set_ylim(0, 40)  # Scores range from 0 to 1
+    # ax.set_ylim(0, 40)  
     ax.grid(True, linestyle='--')
 
     # Show values on bars
@@ -88,16 +106,15 @@ def plot_exp(df, encoding_type, entanglement_type, result_type):
     plt.savefig(result_type+"-Explainibility-" + str(encoding_type) + "-" + str(entanglement_type) + ".png" , bbox_inches='tight')
 
 def average_metrics_table(df):
-    result_df = pd.DataFrame(columns = ["Encoding", "Entanglement", "Type",
+    result_df = pd.DataFrame(columns = ["Encoding", "Entanglement",
                                 "Average Accuracy", "Stdev Accuracy",
                                 "Average F1-Score", "Stdev F1-Score",
                                 "Average Explainibility","Stdev Explainibility"])
     enocdings = ['angle','amplitude']
     ansatz = ['basic','strong']
-    result_types = ['All', 'Train', 'Test']
-    for encoding_type, ansatz_type, result_type in product(enocdings, ansatz, result_types):
-        temp_df = df[(df.Ansatz == ansatz_type) & (df.Encoding == encoding_type) & (df.Type == result_type)]
-        result_df.loc[len(result_df)] = [encoding_type, ansatz_type, result_type,
+    for encoding_type, ansatz_type in product(enocdings, ansatz):
+        temp_df = df[(df.Ansatz == ansatz_type) & (df.Encoding == encoding_type)]
+        result_df.loc[len(result_df)] = [encoding_type, ansatz_type,
                     temp_df['Average Accuracy'].mean(), 
                     np.std(list(temp_df['Average Accuracy'])).item(),
                     temp_df['Average F1-Score'].mean(),
@@ -106,6 +123,7 @@ def average_metrics_table(df):
                     np.std(list(temp_df['Average Explainibility'])).item()
                ]
     result_df.to_excel("average_results.xlsx", index=False)
+    dfi.export(result_df, "average_results.png")
 
 def plot_metric(metric_array, ax, label, color):
     mean = np.mean(metric_array, axis=0)
@@ -145,7 +163,7 @@ if __name__ == "__main__":
         df = df._append(line, ignore_index=True)
     enocdings = ['angle','amplitude']
     ansatz = ['basic','strong']
-    result_types = ['All', 'Train', 'Test']
+    result_types = ['All']
     for encoding_type, ansatz_type, result_type in product(enocdings, ansatz, result_types):
         plot_accuracy_f1_score(df, encoding_type, ansatz_type, result_type)
         plot_exp(df, encoding_type, ansatz_type, result_type)
