@@ -24,8 +24,8 @@ for class_index, class_path in enumerate(wnids):
     class_label.append(wnid_to_class_label[class_path])
 
 
-def plot_accuracy_f1_score(df, encoding_type, entanglement_type):
-    temp_df = df[(df.Ansatz == entanglement_type) & (df.Encoding == encoding_type)]
+def plot_accuracy_f1_score(df, encoding_type, entanglement_type, result_type):
+    temp_df = df[(df.Ansatz == entanglement_type) & (df.Encoding == encoding_type) & (df.Type == result_type)]
 
     accuracy_error, f1_score_error = [],[]
     accuracy, f1_score = [], []
@@ -53,7 +53,7 @@ def plot_accuracy_f1_score(df, encoding_type, entanglement_type):
 
     ax.set_xlabel('Classes',fontsize=20)
     ax.set_ylabel('Scores',fontsize=20)
-    ax.set_title("Accuracy and F1-Score per class: Encoding: "+encoding_type+" | "+"Entanglement: "+entanglement_type,fontsize=20)
+    ax.set_title(result_type+" Accuracy and F1-Score per class: Encoding: "+encoding_type+" | "+"Entanglement: "+entanglement_type,fontsize=20)
     ax.set_xticks(x)
     ax.set_xticklabels(class_label,fontsize=20)
     ax.set_ylim(0, 1.3)  # Scores range from 0 to 1
@@ -70,10 +70,10 @@ def plot_accuracy_f1_score(df, encoding_type, entanglement_type):
             y_pos = max_f1_score[i%4]
         ax.annotate(f'{height:.2f}', xy=(bar.get_x() + bar.get_width() / 2, y_pos),
                     xytext=(0, 3), textcoords="offset points", ha='center', va='bottom', fontsize=20)
-    plt.savefig("Accuracy-F1-" + str(encoding_type) + "-" + str(entanglement_type) + ".png" , bbox_inches='tight')
+    plt.savefig(result_type + "-Accuracy-F1-" + str(encoding_type) + "-" + str(entanglement_type) + ".png" , bbox_inches='tight')
 
-def plot_exp(df, encoding_type, entanglement_type):
-    temp_df = df[(df.Ansatz == entanglement_type) & (df.Encoding == encoding_type)]
+def plot_exp(df, encoding_type, entanglement_type, result_type):
+    temp_df = df[(df.Ansatz == entanglement_type) & (df.Encoding == encoding_type) & (df.Type == result_type)]
 
     exp_error = []
     mean, min, max = [], [], []
@@ -91,7 +91,7 @@ def plot_exp(df, encoding_type, entanglement_type):
 
     ax.set_xlabel('Classes',fontsize=20)
     ax.set_ylabel(r'$\mathcal{E}_{QNN}$',fontsize=20)
-    ax.set_title("Explainibility "+ r'$\mathcal{E}_{QNN}$' + " per class: Encoding: "+encoding_type+" | "+"Entanglement: "+entanglement_type,fontsize=20)
+    ax.set_title(result_type + " Explainibility "+ r'$\mathcal{E}_{QNN}$' + " per class: Encoding: "+encoding_type+" | "+"Entanglement: "+entanglement_type,fontsize=20)
     ax.set_xticks(x)
     ax.set_xticklabels(class_label,fontsize=20)
     # ax.set_ylim(0, 40)  
@@ -103,10 +103,10 @@ def plot_exp(df, encoding_type, entanglement_type):
         y_pos = max[i]
         ax.annotate(f'{height:.2f}', xy=(bar.get_x() + bar.get_width() / 2, y_pos),
                     xytext=(0, 3), textcoords="offset points", ha='center', va='bottom', fontsize=20)
-    plt.savefig("Explainibility-" + str(encoding_type) + "-" + str(entanglement_type) + ".png" , bbox_inches='tight')
+    plt.savefig(result_type+"-Explainibility-" + str(encoding_type) + "-" + str(entanglement_type) + ".png" , bbox_inches='tight')
 
 def average_metrics_table(df):
-    result_df = pd.DataFrame(columns = ["Encoding", "Entanglement", 
+    result_df = pd.DataFrame(columns = ["Encoding", "Entanglement",
                                 "Average Accuracy", "Stdev Accuracy",
                                 "Average F1-Score", "Stdev F1-Score",
                                 "Average Explainibility","Stdev Explainibility"])
@@ -114,7 +114,7 @@ def average_metrics_table(df):
     ansatz = ['basic','strong']
     for encoding_type, ansatz_type in product(enocdings, ansatz):
         temp_df = df[(df.Ansatz == ansatz_type) & (df.Encoding == encoding_type)]
-        result_df.loc[len(result_df)] = [encoding_type, ansatz_type, 
+        result_df.loc[len(result_df)] = [encoding_type, ansatz_type,
                     temp_df['Average Accuracy'].mean(), 
                     np.std(list(temp_df['Average Accuracy'])).item(),
                     temp_df['Average F1-Score'].mean(),
@@ -163,10 +163,10 @@ if __name__ == "__main__":
         df = df._append(line, ignore_index=True)
     enocdings = ['angle','amplitude']
     ansatz = ['basic','strong']
-    for encoding_type, ansatz_type in product(enocdings, ansatz):
-        plot_accuracy_f1_score(df, encoding_type, ansatz_type)
-        plot_exp(df, encoding_type, ansatz_type)
-    average_metrics_table(df)
+    result_types = ['Train', 'Test']
+    for encoding_type, ansatz_type, result_type in product(enocdings, ansatz, result_types):
+        plot_accuracy_f1_score(df, encoding_type, ansatz_type, result_type)
+        plot_exp(df, encoding_type, ansatz_type, result_type)
 
     f = open('training_history.json','r')
     lines = f.readlines()[0].split("}{")
@@ -204,4 +204,9 @@ if __name__ == "__main__":
             row + [np.nan] * (max_val_loss - len(row))
             for row in val_loss])
 
-        plot_training_history(encoding_type, ansatz_type, training_acc, training_loss, val_acc, val_loss)    
+        plot_training_history(encoding_type, ansatz_type, training_acc, training_loss, val_acc, val_loss)
+    
+
+
+
+            

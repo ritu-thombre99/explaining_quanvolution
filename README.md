@@ -20,15 +20,11 @@ python run_quanv.py --encoding amplitude --ansatz strong --filter_size 2
 
 ```python optimal_param_search.py >> param_search_result.txt```
 
-3. Train 10 QNN models under 4-different configs (models saved as ```.h5``` in Models directory, training history saved as ```training_history.json``` in Plots directory):
+3. Train 10 QNN models under 4-different configs (models saved as ```.h5``` in Models directory, training history saved as ```training_history.json``` in Plots directory), and evaluate their performance and dump their results in ```results.json``` in Plots directory:
 
 ```python train_qnns.py```
 
-4. Import saved model, evaluate their performance and dump their results in ```results.json``` in Plots directory:
-
-```python evaluate_qnns.py```
-
-5. To get the plots (saved as png) and tables (saved as excel), run the following in Plots directory:
+4. To get the plots (saved as png) and tables (saved as excel), run the following in Plots directory:
 
 ```python generate_plots.py```
 
