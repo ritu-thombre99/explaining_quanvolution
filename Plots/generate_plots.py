@@ -163,11 +163,10 @@ if __name__ == "__main__":
         df = df._append(line, ignore_index=True)
     enocdings = ['angle','amplitude']
     ansatz = ['basic','strong']
-    result_types = ['All']
+    result_types = ['Train', 'Test']
     for encoding_type, ansatz_type, result_type in product(enocdings, ansatz, result_types):
         plot_accuracy_f1_score(df, encoding_type, ansatz_type, result_type)
         plot_exp(df, encoding_type, ansatz_type, result_type)
-    average_metrics_table(df)
 
     f = open('training_history.json','r')
     lines = f.readlines()[0].split("}{")
