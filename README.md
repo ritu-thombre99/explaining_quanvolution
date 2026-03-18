@@ -16,15 +16,12 @@ python run_quanv.py --encoding amplitude --ansatz basic --filter_size 2
 python run_quanv.py --encoding angle --ansatz strong --filter_size 2
 python run_quanv.py --encoding amplitude --ansatz strong --filter_size 2
 ```
-2. (Optional) Get optimal optimizer from GridSearch CV
 
-```python optimal_param_search.py >> param_search_result.txt```
-
-3. Train 10 QNN models under 4-different configs (models saved as ```.h5``` in Models directory, training history saved as ```training_history.json``` in Plots directory), and evaluate their performance and dump their results in ```results.json``` in Plots directory:
+2. Train 10 QNN models under 4-different configs (models saved as ```.h5``` in Models directory, training history saved as ```training_history.json``` in Plots directory), and evaluate their performance and dump their results in ```results.json``` in Plots directory:
 
 ```python train_qnns.py```
 
-4. To get the plots (saved as png) and tables (saved as excel), run the following in Plots directory:
+3. To get the plots (saved as png) and tables (saved as excel), run the following in Plots directory:
 
 ```python generate_plots.py```
 
@@ -45,13 +42,6 @@ python run_quanv.py --encoding amplitude --ansatz strong --filter_size 2
 
     The heatmap in this paper are generated using iNNvestigate: https://arxiv.org/pdf/1808.04260 (https://github.com/albermax/innvestigate?tab=readme-ov-file)
 
-# TODO for future checkpoints
-
-Use ScoreCAM: non-graident based heatmap explainer 
-    
-    Paper: https://arxiv.org/pdf/1910.01279
-    
-    Code: https://github.com/tabayashi0117/Score-CAM/blob/master/Score-CAM.ipynb
 
 References 
 1. Grad-CAM tutorial: https://xai-tutorials.readthedocs.io/en/latest/_model_specific_xai/Grad-CAM.html
