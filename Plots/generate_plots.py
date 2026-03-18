@@ -53,7 +53,7 @@ def plot_accuracy_f1_score(df, encoding_type, entanglement_type, result_type):
 
     ax.set_xlabel('Classes',fontsize=20)
     ax.set_ylabel('Scores',fontsize=20)
-    ax.set_title(result_type+" Accuracy and F1-Score per class: Encoding: "+encoding_type+" | "+"Entanglement: "+entanglement_type,fontsize=20)
+    fig.suptitle(result_type+" Accuracy and F1-Score per class: Encoding: "+encoding_type+" | "+"Entanglement: "+entanglement_type,fontsize=20)
     ax.set_xticks(x)
     ax.set_xticklabels(class_label,fontsize=20)
     ax.set_ylim(0, 1.3)  # Scores range from 0 to 1
@@ -91,10 +91,10 @@ def plot_exp(df, encoding_type, entanglement_type, result_type):
 
     ax.set_xlabel('Classes',fontsize=20)
     ax.set_ylabel(r'$\mathcal{E}_{QNN}$',fontsize=20)
-    ax.set_title(result_type + " Explainibility "+ r'$\mathcal{E}_{QNN}$' + " per class: Encoding: "+encoding_type+" | "+"Entanglement: "+entanglement_type,fontsize=20)
+    fig.suptitle(result_type + " Explainibility "+ r'$\mathcal{E}_{QNN}$' + " per class: Encoding: "+encoding_type+" | "+"Entanglement: "+entanglement_type,fontsize=20)
     ax.set_xticks(x)
     ax.set_xticklabels(class_label,fontsize=20)
-    # ax.set_ylim(0, 40)  
+    ax.set_ylim(0, 45)  
     ax.grid(True, linestyle='--')
 
     # Show values on bars
