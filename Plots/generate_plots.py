@@ -161,6 +161,7 @@ if __name__ == "__main__":
     df = pd.DataFrame()
     for line in file_content:
         df = df._append(line, ignore_index=True)
+    average_metrics_table(df)
     enocdings = ['angle','amplitude']
     ansatz = ['basic','strong']
     result_types = ['Train', 'Test']
@@ -206,7 +207,3 @@ if __name__ == "__main__":
 
         plot_training_history(encoding_type, ansatz_type, training_acc, training_loss, val_acc, val_loss)
     
-
-
-
-            
