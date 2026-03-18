@@ -43,6 +43,13 @@ python run_quanv.py --encoding amplitude --ansatz strong --filter_size 2
     The heatmap in this paper are generated using iNNvestigate: https://arxiv.org/pdf/1808.04260 (https://github.com/albermax/innvestigate?tab=readme-ov-file)
 
 
+# Note on reprodung plots:
+
+- Depending on the platform, different (and incorrect) classwise accuracy, F1-score and explainibility plots might be generated since the class_label is indexed in one way while retrieving timy-imagenet-200 directory during training on one platform (where training took place) but they will be different if Plots are generated on a different system
+
+- To accurately reproduce plots, run `train_qnns.py` before running `Plots/generate_plots.py`
+
+
 References 
 1. Grad-CAM tutorial: https://xai-tutorials.readthedocs.io/en/latest/_model_specific_xai/Grad-CAM.html
 2. Grad-CAM implementation in TensorFlow keras: https://keras.io/examples/vision/grad_cam/
